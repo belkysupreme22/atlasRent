@@ -1,5 +1,6 @@
 package com.test.demo.service;
 
+import com.test.demo.model.Category;
 import com.test.demo.model.Product;
 import com.test.demo.model.UserEntity;
 import com.test.demo.repository.ProductRepository;
@@ -22,6 +23,11 @@ public class ProductService {
     public List<Product> getProductsByUsername(String username) {
         return productRepository.findByOwnerUsername(username);
     }
+
+    public List<Product> getAllProductsByName(String name){
+        return productRepository.findByName(name);
+    }
+
 }
 
 

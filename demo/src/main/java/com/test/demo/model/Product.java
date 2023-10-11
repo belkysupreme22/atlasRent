@@ -12,7 +12,7 @@ import java.util.Optional;
 @Getter
 @Entity
 @Table(name = "products")
-public class Product {
+public class Product{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,6 +23,8 @@ public class Product {
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate date;
     private String status;
+
+
     @ManyToOne
     @JoinColumn(name = "category_id")
     @JsonIgnore

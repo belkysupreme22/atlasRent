@@ -1,6 +1,7 @@
 package com.test.demo.controller;
 
 import com.test.demo.dto.ProductDto;
+import com.test.demo.dto.ProductResponse;
 import com.test.demo.exeptions.UnauthorizedException;
 import com.test.demo.exeptions.UserNotFoundException;
 import com.test.demo.model.Category;
@@ -10,8 +11,10 @@ import com.test.demo.repository.CategoryRepository;
 import com.test.demo.repository.ProductRepository;
 import com.test.demo.repository.UserRepository;
 import com.test.demo.service.ProductService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,7 +35,32 @@ public class ProductController {
     private final UserRepository userRepository;
     private final ProductService productService;
 
+    @GetMapping("/view-products")
+    public ProductResponse gellAllProducts(@RequestParam int pageNo, @RequestParam int pageSize){
+        Pageable pageable = PageRequest.of(pageNo, pageSize);
+        Page<Product> products = productRepository.findAll(pageable);
 
+        List<Product> listOfProducts = products.getContent();
+        ProductResponse productResponse = new ProductResponse();
+        productResponse.setContent(listOfProducts);
+        productResponse.setPageNo(productResponse.getPageNo());
+        productResponse.setPageSize(productResponse.getPageSize());
+        productResponse.setTotalPages(productResponse.getTotalPages());
+        productResponse.setTotalElements(productResponse.getTotalElements());
+        productResponse.setLast(productResponse.isLast());
+
+        return productResponse;
+
+    }
+
+    @GetMapping("/product/{name}")
+    public ResponseEntity<List<Product>> getProductsByName(@PathVariable String name){
+        List<Product> products = productService.getAllProductsByName(name);
+        return ResponseEntity.ok(products);
+    }
+
+
+    @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/my-products")
     public ResponseEntity<List<Product>> getMyProducts(@AuthenticationPrincipal UserDetails userDetails) {
         if (userDetails != null) {
@@ -44,6 +72,7 @@ public class ProductController {
         }
     }
 
+    @SecurityRequirement(name = "bearerAuth")
     @PostMapping("/list-products")
     public ResponseEntity<String> createProduct(@RequestBody ProductDto productDto) {
         Product product = new Product();

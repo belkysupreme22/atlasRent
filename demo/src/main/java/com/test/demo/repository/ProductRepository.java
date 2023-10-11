@@ -1,4 +1,5 @@
 package com.test.demo.repository;
+import com.test.demo.model.Category;
 import com.test.demo.model.Product;
 import com.test.demo.model.UserEntity;
 import org.springframework.data.domain.Page;
@@ -13,5 +14,7 @@ import java.util.List;
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
     List<Product> findByOwnerUsername(String username);
+    List<Product> findByName(String name);
+    List<Product> findByCategory(Category category);
 }
 

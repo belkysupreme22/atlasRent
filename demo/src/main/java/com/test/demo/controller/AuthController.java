@@ -8,15 +8,18 @@ import com.test.demo.model.UserEntity;
 import com.test.demo.repository.RoleRepository;
 import com.test.demo.repository.UserRepository;
 
+import com.test.demo.security.CustomUserDetailsService;
 import com.test.demo.security.JwtService;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -37,6 +40,7 @@ public class AuthController {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final CustomUserDetailsService userDetailsService;
 
 
     @PostMapping("/login")
@@ -45,10 +49,23 @@ public class AuthController {
                 new UsernamePasswordAuthenticationToken(
                         loginDto.getUsername(),
                         loginDto.getPassword()));
+
         var user = userRepository.findByUsername(loginDto.getUsername()).orElseThrow();
         SecurityContextHolder.getContext().setAuthentication(authentication);
         var token = jwtService.generateToken(user);
-        return new ResponseEntity<>(new AuthResponseDTO(token), HttpStatus.OK);
+
+        //validation check
+        UserDetails userDetails = userDetailsService.loadUserByUsername(loginDto.getUsername());
+
+        if(userDetails == null && passwordEncoder.matches(loginDto.getPassword(), user.getPassword())){
+            throw new BadCredentialsException("invalid username or password");
+        }
+
+        AuthResponseDTO authResponseDTO = new AuthResponseDTO();
+        authResponseDTO.setAccessToken(token);
+        authResponseDTO.setMessage("loggedIn successfully");
+
+        return new ResponseEntity<AuthResponseDTO>(authResponseDTO,HttpStatus.CREATED);
     }
 
     @PostMapping("/register")
