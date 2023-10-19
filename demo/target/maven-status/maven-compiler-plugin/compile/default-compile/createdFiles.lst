@@ -6,6 +6,7 @@ com\test\demo\exeptions\UnauthorizedException.class
 com\test\demo\dto\UserDto.class
 com\test\demo\service\ProductService.class
 com\test\demo\security\OpenApiConfig.class
+com\test\demo\service\UserService.class
 com\test\demo\repository\CategoryRepository.class
 com\test\demo\repository\ProductRepository.class
 com\test\demo\dto\ChangePasswordDto.class
@@ -13,6 +14,7 @@ com\test\demo\security\CustomUserDetailsService.class
 com\test\demo\security\JwtAuthFilter.class
 com\test\demo\repository\RoleRepository.class
 com\test\demo\repository\UserRepository.class
+com\test\demo\exeptions\ProductNotFoundException.class
 com\test\demo\model\Role.class
 com\test\demo\dto\ProductResponse.class
 com\test\demo\dto\AuthResponseDTO.class
@@ -27,4 +29,6 @@ com\test\demo\security\JwtService.class
 com\test\demo\controller\UserController.class
 com\test\demo\model\UserEntity.class
 com\test\demo\dto\LoginDto.class
+com\test\demo\Views$BasicInfo.class
 com\test\demo\security\JwtAuthEntryPoint.class
+com\test\demo\Views.class
