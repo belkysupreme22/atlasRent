@@ -13,8 +13,11 @@ import java.util.List;
 
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
-    List<Product> findByOwnerUsername(String username);
+    Page<Product> findByOwnerUsername(String username, Pageable pageable);
     List<Product> findByName(String name);
-    List<Product> findByCategory(Category category);
+    List<Product> deleteProductsByName(String name);
+
+    Page<Product> findByCategoryName(String categoryName, Pageable pageable);
+
 }
 

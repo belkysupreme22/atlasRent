@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Getter
@@ -20,15 +21,17 @@ public class Product{
     private String name;
     private double price;
     private String location;
+    @JsonIgnore
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate date;
     private String status;
 
-
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "category_id")
-    @JsonIgnore
     private Category category;
+
+
     @ManyToOne
     @JoinColumn(name = "user_id")
     @JsonIgnore

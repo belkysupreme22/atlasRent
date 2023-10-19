@@ -2,6 +2,7 @@ package com.test.demo.controller;
 
 import com.test.demo.dto.ProductDto;
 import com.test.demo.dto.ProductResponse;
+import com.test.demo.dto.UserResponse;
 import com.test.demo.exeptions.UnauthorizedException;
 import com.test.demo.exeptions.UserNotFoundException;
 import com.test.demo.model.Category;
@@ -25,7 +26,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
 
-
+@CrossOrigin(origins = "localhost:3000")
 @RestController
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor
@@ -36,18 +37,20 @@ public class ProductController {
     private final ProductService productService;
 
     @GetMapping("/view-products")
-    public ProductResponse gellAllProducts(@RequestParam int pageNo, @RequestParam int pageSize){
+    public ProductResponse gellAllProducts
+            (@RequestParam(defaultValue = "0") int pageNo,
+             @RequestParam int pageSize){
         Pageable pageable = PageRequest.of(pageNo, pageSize);
         Page<Product> products = productRepository.findAll(pageable);
 
         List<Product> listOfProducts = products.getContent();
         ProductResponse productResponse = new ProductResponse();
         productResponse.setContent(listOfProducts);
-        productResponse.setPageNo(productResponse.getPageNo());
-        productResponse.setPageSize(productResponse.getPageSize());
-        productResponse.setTotalPages(productResponse.getTotalPages());
-        productResponse.setTotalElements(productResponse.getTotalElements());
-        productResponse.setLast(productResponse.isLast());
+        productResponse.setPageNo(pageNo); // Set the page number from the request
+        productResponse.setPageSize(pageSize); // Set the page size from the request
+        productResponse.setTotalPages(products.getTotalPages());
+        productResponse.setTotalElements(products.getTotalElements());
+        productResponse.setLast(products.isLast());
 
         return productResponse;
 
@@ -59,18 +62,60 @@ public class ProductController {
         return ResponseEntity.ok(products);
     }
 
+    @GetMapping("/products-by-category")
+    public ResponseEntity<ProductResponse> getProductsByCategoryNamePaged(
+            @RequestParam String categoryName,
+            @RequestParam(defaultValue = "0") int pageNo,
+            @RequestParam int pageSize
+    ) {
+        Pageable pageable = PageRequest.of(pageNo, pageSize);
+        Page<Product> products = productService.getProductsByCategoryNamePaged(categoryName, pageable);
+
+        ProductResponse productResponse = new ProductResponse();
+        productResponse.setContent(products.getContent());
+        productResponse.setPageNo(products.getNumber());
+        productResponse.setPageSize(products.getSize());
+        productResponse.setTotalElements(products.getTotalElements());
+        productResponse.setTotalPages(products.getTotalPages());
+        productResponse.setLast(products.isLast());
+
+        return ResponseEntity.ok(productResponse);
+    }
+
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteProduct(@PathVariable Long id) {
+        productService.deleteProduct(id);
+        return ResponseEntity.ok("Product with ID " + id + " deleted successfully.");
+    }
 
     @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/my-products")
-    public ResponseEntity<List<Product>> getMyProducts(@AuthenticationPrincipal UserDetails userDetails) {
+    public ResponseEntity<ProductResponse> getMyProducts(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam(defaultValue = "0") int pageNo,
+            @RequestParam int pageSize
+    ) {
         if (userDetails != null) {
             String currentUsername = userDetails.getUsername();
-            List<Product> products = productService.getProductsByUsername(currentUsername);
-            return ResponseEntity.ok(products);
+            Pageable pageable = PageRequest.of(pageNo, pageSize);
+            Page<Product> products = productService.getProductsByUsernamePaged(currentUsername, pageable);
+
+            List<Product> myProducts = products.getContent();
+            ProductResponse productResponse = new ProductResponse();
+            productResponse.setContent(myProducts);
+            productResponse.setPageNo(pageNo);
+            productResponse.setPageSize(pageSize);
+            productResponse.setTotalPages(products.getTotalPages());
+            productResponse.setTotalElements(products.getTotalElements());
+            productResponse.setLast(products.isLast());
+
+            return ResponseEntity.ok(productResponse);
         } else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
     }
+
 
     @SecurityRequirement(name = "bearerAuth")
     @PostMapping("/list-products")
