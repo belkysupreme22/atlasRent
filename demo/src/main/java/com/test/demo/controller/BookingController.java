@@ -1,5 +1,6 @@
 package com.test.demo.controller;
 
+import com.test.demo.BookingStatus;
 import com.test.demo.dto.BookingDto;
 import com.test.demo.dto.BookingResponse;
 import com.test.demo.dto.ProductResponse;
@@ -11,16 +12,21 @@ import com.test.demo.repository.UserRepository;
 import com.test.demo.service.BookingService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @CrossOrigin(origins = "localhost:3000")
 @RestController
@@ -61,64 +67,66 @@ public class BookingController {
     }
 
     @SecurityRequirement(name = "bearerAuth")
-    @GetMapping("/renter-bookings")
-    public ResponseEntity<BookingResponse> getMyProducts(
-            @AuthenticationPrincipal UserDetails userDetails,
-            @RequestParam(defaultValue = "0") int pageNo,
-            @RequestParam int pageSize
-    ) {
-        if (userDetails != null) {
-            String currentUsername = userDetails.getUsername();
-            Pageable pageable = PageRequest.of(pageNo, pageSize);
-            Page<Booking> bookings = bookingService.getBookingsByUsernamePaged(currentUsername, pageable);
-
-            List<Booking> myBookings = bookings.getContent();
-            BookingResponse bookingResponse = new BookingResponse();
-            bookingResponse.setContent(myBookings);
-            bookingResponse.setPageNo(pageNo);
-            bookingResponse.setPageSize(pageSize);
-            bookingResponse.setTotalPages(bookings.getTotalPages());
-            bookingResponse.setTotalElements(bookings.getTotalElements());
-            bookingResponse.setLast(bookings.isLast());
-
-            return ResponseEntity.ok(bookingResponse);
-        } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-    }
-
-
-    @SecurityRequirement(name = "bearerAuth")
-    @GetMapping("/bookings-for-owned-products")
-    public ResponseEntity<BookingResponse> getBookingsForOwnedProducts(
-            @AuthenticationPrincipal UserDetails userDetails,
-            @RequestParam(name = "pageNo", defaultValue = "0") int pageNo,
-            @RequestParam int pageSize
-    ) {
-        if (userDetails != null ) {
-            String ownerUsername = userDetails.getUsername();
-            Pageable pageable = PageRequest.of(pageNo, pageSize);
-            Page<Booking> bookings = bookingService.getBookingsForOwnedProductsPaged(ownerUsername, pageable);
-
-            BookingResponse bookingResponse = new BookingResponse();
-            bookingResponse.setContent(bookings.getContent());
-            bookingResponse.setPageNo(pageNo);
-            bookingResponse.setPageSize(pageSize);
-            bookingResponse.setTotalPages(bookings.getTotalPages());
-            bookingResponse.setTotalElements(bookings.getTotalElements());
-            bookingResponse.setLast(bookings.isLast());
-
-            return ResponseEntity.ok(bookingResponse);
-        } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-    }
-
-    @PutMapping("/{bookingId}/approve")
+    @PreAuthorize(value = "hasRole('OWNER')")
+    @PutMapping("/approve/{bookingId}")
     public ResponseEntity<String> approveBooking(@PathVariable Long bookingId) {
         bookingService.approveBooking(bookingId);
-        return ResponseEntity.ok("Booking approved, and product marked as rented.");
+        return ResponseEntity.ok("Booking approved");
     }
+
+    @SecurityRequirement(name = "bearerAuth")
+    @PreAuthorize(value = "hasRole('OWNER')")
+    @PutMapping("/reject/{bookingId}")
+    public ResponseEntity<String> rejectBooking(@PathVariable Long bookingId) {
+        bookingService.rejectBooking(bookingId);
+        return ResponseEntity.ok("Booking rejected");
+    }
+
+    @SecurityRequirement(name = "bearerAuth")
+    @GetMapping("/owner-bookings")
+    public ResponseEntity<List<Booking>> getBookingsForOwnedProducts(@AuthenticationPrincipal UserDetails userDetails) {
+        if (userDetails != null) {
+            UserEntity owner = userRepository.findByUsername(userDetails.getUsername()).orElse(null);
+            if (owner != null) {
+                List<Booking> bookings = bookingService.getBookingsForOwnedProducts(owner);
+
+                return new ResponseEntity<>(bookings, HttpStatus.OK);
+            }
+        }
+
+        // Return an empty list if there are no bookings
+        return new ResponseEntity<>(Collections.emptyList(), HttpStatus.OK);
+    }
+    @SecurityRequirement(name = "bearerAuth")
+    @GetMapping("/owner-rentals")
+    public ResponseEntity<List<Booking>> getRentalsForOwnedProducts(@AuthenticationPrincipal
+                                                                        UserDetails user) {
+        if (user != null) {
+            UserEntity owner = userRepository.findByUsername(user.getUsername()).orElse(null);
+            if (owner != null) {
+                List<Booking> rentals = bookingService.getRentingsForOwnedProducts(owner);
+
+                return new ResponseEntity<>(rentals, HttpStatus.OK);
+            }
+        }
+
+        // Return an empty list if there are no bookings
+        return new ResponseEntity<>(Collections.emptyList(), HttpStatus.OK);
+    }
+
+    @DeleteMapping("booking/{bookingId}")
+    public ResponseEntity<String> deleteBooking(@PathVariable Long bookingId) {
+        try {
+            bookingService.deleteBookingById(bookingId);
+            return ResponseEntity.ok("Booking deleted successfully");
+        } catch (EmptyResultDataAccessException ex) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while deleting the booking");
+        }
+    }
+
+
 
 }
 

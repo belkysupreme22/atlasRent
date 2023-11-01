@@ -28,6 +28,7 @@ com\test\demo\exeptions\CustomExceptionHandler.class
 com\test\demo\model\Category.class
 com\test\demo\security\SecurityConfig.class
 com\test\demo\model\Product.class
+com\test\demo\BookingStatus.class
 com\test\demo\dto\BookingResponse.class
 com\test\demo\controller\ProductController.class
 com\test\demo\controller\AuthController.class

@@ -12,6 +12,9 @@ public class Status {
     private Long id;
     private String name;
 
+    @ManyToMany(mappedBy = "statuses")
+    private List<Product> products;
+
     public void setName(String name) {
         this.name = name;
     }

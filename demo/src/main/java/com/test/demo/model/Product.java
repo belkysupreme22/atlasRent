@@ -27,17 +27,19 @@ public class Product{
     private LocalDate date;
     private String status;
 
+    //product-category association
     @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "category_id")
     private Category category;
 
-
+    //product-owner association
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "user_id")
-    @JsonIgnore
     private UserEntity owner;
 
+    //product-status association
     @JsonIgnore
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "product_status_mapping",
@@ -45,6 +47,7 @@ public class Product{
             inverseJoinColumns = @JoinColumn(name = "status_id"))
     private List<Status> statuses;
 
+    //product-booking association
     @JsonIgnore
     @OneToMany(mappedBy = "product")
     private List<Booking> bookings;

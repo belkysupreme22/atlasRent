@@ -25,20 +25,22 @@ public class UserEntity implements UserDetails {
     private String password;
     private String email;
     private boolean active;
-
     // Add this annotation to track the created timestamp
     @Column(name = "created_at")
     private LocalDate createdAt;
 
+    //user-role association
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id"))
     private List<Role> roles = new ArrayList<>();
 
+    //user-product association
     @OneToMany(mappedBy = "owner")
     @JsonIgnore
     private List<Product> products;
 
+    //user-booking association
     @JsonIgnore
     @OneToMany(mappedBy = "booker")
     private List<Booking> bookings;
