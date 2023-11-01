@@ -1,14 +1,20 @@
 com\test\demo\dto\RegisterDto.class
 com\test\demo\exeptions\UserNotFoundException.class
+com\test\demo\dto\BookingDto.class
+com\test\demo\model\Booking.class
 com\test\demo\dto\UserResponse.class
+com\test\demo\repository\StatusRepository.class
 com\test\demo\dto\ProductDto.class
 com\test\demo\exeptions\UnauthorizedException.class
+com\test\demo\controller\BookingController.class
 com\test\demo\dto\UserDto.class
 com\test\demo\service\ProductService.class
 com\test\demo\security\OpenApiConfig.class
 com\test\demo\service\UserService.class
 com\test\demo\repository\CategoryRepository.class
 com\test\demo\repository\ProductRepository.class
+com\test\demo\exeptions\BookingNotFoundException.class
+com\test\demo\repository\BookingRepository.class
 com\test\demo\dto\ChangePasswordDto.class
 com\test\demo\security\CustomUserDetailsService.class
 com\test\demo\security\JwtAuthFilter.class
@@ -22,6 +28,7 @@ com\test\demo\exeptions\CustomExceptionHandler.class
 com\test\demo\model\Category.class
 com\test\demo\security\SecurityConfig.class
 com\test\demo\model\Product.class
+com\test\demo\dto\BookingResponse.class
 com\test\demo\controller\ProductController.class
 com\test\demo\controller\AuthController.class
 com\test\demo\DemoApplication.class
@@ -29,6 +36,6 @@ com\test\demo\security\JwtService.class
 com\test\demo\controller\UserController.class
 com\test\demo\model\UserEntity.class
 com\test\demo\dto\LoginDto.class
-com\test\demo\Views$BasicInfo.class
+com\test\demo\model\Status.class
 com\test\demo\security\JwtAuthEntryPoint.class
-com\test\demo\Views.class
+com\test\demo\service\BookingService.class

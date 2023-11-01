@@ -7,9 +7,11 @@ import com.test.demo.exeptions.UnauthorizedException;
 import com.test.demo.exeptions.UserNotFoundException;
 import com.test.demo.model.Category;
 import com.test.demo.model.Product;
+import com.test.demo.model.Status;
 import com.test.demo.model.UserEntity;
 import com.test.demo.repository.CategoryRepository;
 import com.test.demo.repository.ProductRepository;
+import com.test.demo.repository.StatusRepository;
 import com.test.demo.repository.UserRepository;
 import com.test.demo.service.ProductService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -35,11 +37,13 @@ public class ProductController {
     private final CategoryRepository categoryRepository;
     private final UserRepository userRepository;
     private final ProductService productService;
+    private final StatusRepository statusRepository;
 
     @GetMapping("/view-products")
     public ProductResponse gellAllProducts
             (@RequestParam(defaultValue = "0") int pageNo,
              @RequestParam int pageSize){
+
         Pageable pageable = PageRequest.of(pageNo, pageSize);
         Page<Product> products = productRepository.findAll(pageable);
 
@@ -154,7 +158,15 @@ public class ProductController {
             return new ResponseEntity<>("Invalid category preference!", HttpStatus.BAD_REQUEST);
         }
         product.setCategory(category);
-        product.setStatus("pending");
+        Optional<Status> statusOptional = statusRepository.findByName("pending");
+
+        if (statusOptional.isPresent()) {
+            Status status = statusOptional.get();
+            product.setStatus(status.getName());
+        } else {
+            // Handle the case where the status is not found
+            return new ResponseEntity<>("Status not found in the database!", HttpStatus.BAD_REQUEST);
+        }
 
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String currentUsername = userDetails.getUsername();

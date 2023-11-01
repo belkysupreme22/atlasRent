@@ -8,6 +8,7 @@ import lombok.Getter;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Getter
@@ -36,6 +37,18 @@ public class Product{
     @JoinColumn(name = "user_id")
     @JsonIgnore
     private UserEntity owner;
+
+    @JsonIgnore
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @JoinTable(name = "product_status_mapping",
+            joinColumns = @JoinColumn(name = "product_id"),
+            inverseJoinColumns = @JoinColumn(name = "status_id"))
+    private List<Status> statuses;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "product")
+    private List<Booking> bookings;
+
 
     public void setOwner(UserEntity owner) {
         this.owner = owner;

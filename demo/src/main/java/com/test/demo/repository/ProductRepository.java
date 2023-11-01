@@ -15,7 +15,6 @@ import java.util.List;
 public interface ProductRepository extends JpaRepository<Product, Long> {
     Page<Product> findByOwnerUsername(String username, Pageable pageable);
     List<Product> findByName(String name);
-    List<Product> deleteProductsByName(String name);
 
     Page<Product> findByCategoryName(String categoryName, Pageable pageable);
 

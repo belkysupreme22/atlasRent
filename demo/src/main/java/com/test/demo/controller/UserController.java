@@ -5,6 +5,7 @@ import com.test.demo.model.UserEntity;
 import com.test.demo.repository.UserRepository;
 
 import com.test.demo.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,10 +25,11 @@ import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 
-@CrossOrigin(origins = "localhost:3000")
+@CrossOrigin(origins = "http://localhost:3000")
 @Transactional
 @RestController
 @RequestMapping("/api/users")
+
 public class UserController {
 
    private PasswordEncoder passwordEncoder;
@@ -44,6 +46,7 @@ public class UserController {
         this.userService = userService;
     }
 
+    @Operation(summary = "this is api to fetch all the users from database")
     @GetMapping("/view-users")
     public UserResponse getAllUsers(@RequestParam(defaultValue = "0") int pageNo, @RequestParam int pageSize) {
             Pageable pageable = PageRequest.of(pageNo, pageSize);
@@ -106,9 +109,9 @@ public class UserController {
     }
 
     @GetMapping("/renters/count")
-    public ResponseEntity<Long> getTotalRenterssCount() {
-        long ownerCount = userService.getTotalRenters();
-        return ResponseEntity.ok(ownerCount);
+    public ResponseEntity<Long> getTotalRentersCount() {
+        long renterCount = userService.getTotalRenters();
+        return ResponseEntity.ok(renterCount);
     }
 
     @SecurityRequirement(name = "bearerAuth")
@@ -132,7 +135,8 @@ public class UserController {
     }
 
     @PutMapping("/updateProfile")
-    public ResponseEntity<String> updateUser(@AuthenticationPrincipal UserDetails userDetails, @RequestBody UserDto userDto) {
+    public ResponseEntity<String> updateUser(@AuthenticationPrincipal UserDetails userDetails,
+                                             @RequestBody UserDto userDto) {
         if (userDetails != null) {
             String username = userDetails.getUsername(); // Get the currently logged-in username
             Optional<UserEntity> optionalUser = userRepository.findByUsername(username);
