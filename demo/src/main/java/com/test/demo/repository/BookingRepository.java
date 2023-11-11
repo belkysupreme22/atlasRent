@@ -1,5 +1,6 @@
 package com.test.demo.repository;
 
+import com.test.demo.BookingStatus;
 import com.test.demo.model.Booking;
 import com.test.demo.model.Product;
 import com.test.demo.model.UserEntity;
@@ -17,6 +18,7 @@ import java.util.List;
 public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findByProduct(Product product);
 
+    List<Booking> findByBookerAndStatus(UserEntity renter, BookingStatus bookingStatus);
 }
 
 

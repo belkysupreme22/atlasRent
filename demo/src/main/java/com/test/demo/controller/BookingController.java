@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 
 @CrossOrigin(origins = "localhost:3000")
 @RestController
-@RequestMapping("/api/v1")
+@RequestMapping("/api/booking")
 @RequiredArgsConstructor
 public class BookingController {
 
@@ -67,7 +67,6 @@ public class BookingController {
     }
 
     @SecurityRequirement(name = "bearerAuth")
-    @PreAuthorize(value = "hasRole('OWNER')")
     @PutMapping("/approve/{bookingId}")
     public ResponseEntity<String> approveBooking(@PathVariable Long bookingId) {
         bookingService.approveBooking(bookingId);
@@ -75,7 +74,6 @@ public class BookingController {
     }
 
     @SecurityRequirement(name = "bearerAuth")
-    @PreAuthorize(value = "hasRole('OWNER')")
     @PutMapping("/reject/{bookingId}")
     public ResponseEntity<String> rejectBooking(@PathVariable Long bookingId) {
         bookingService.rejectBooking(bookingId);
@@ -89,6 +87,38 @@ public class BookingController {
             UserEntity owner = userRepository.findByUsername(userDetails.getUsername()).orElse(null);
             if (owner != null) {
                 List<Booking> bookings = bookingService.getBookingsForOwnedProducts(owner);
+
+                return new ResponseEntity<>(bookings, HttpStatus.OK);
+            }
+        }
+
+        // Return an empty list if there are no bookings
+        return new ResponseEntity<>(Collections.emptyList(), HttpStatus.OK);
+    }
+
+    @SecurityRequirement(name = "bearerAuth")
+    @GetMapping("/renter-bookings")
+    public ResponseEntity<List<Booking>> getBookingsForRentee(@AuthenticationPrincipal UserDetails userDetails) {
+        if (userDetails != null) {
+            UserEntity booker = userRepository.findByUsername(userDetails.getUsername()).orElse(null);
+            if (booker != null) {
+                List<Booking> bookings = bookingService.getBookingsForRentee(booker);
+
+                return new ResponseEntity<>(bookings, HttpStatus.OK);
+            }
+        }
+
+        // Return an empty list if there are no bookings
+        return new ResponseEntity<>(Collections.emptyList(), HttpStatus.OK);
+    }
+
+    @SecurityRequirement(name = "bearerAuth")
+    @GetMapping("/renter-rentals")
+    public ResponseEntity<List<Booking>> getRentingsForRentee(@AuthenticationPrincipal UserDetails userDetails) {
+        if (userDetails != null) {
+            UserEntity booker = userRepository.findByUsername(userDetails.getUsername()).orElse(null);
+            if (booker != null) {
+                List<Booking> bookings = bookingService.getRentingsForRentee(booker);
 
                 return new ResponseEntity<>(bookings, HttpStatus.OK);
             }
@@ -114,7 +144,7 @@ public class BookingController {
         return new ResponseEntity<>(Collections.emptyList(), HttpStatus.OK);
     }
 
-    @DeleteMapping("booking/{bookingId}")
+    @DeleteMapping("/{bookingId}")
     public ResponseEntity<String> deleteBooking(@PathVariable Long bookingId) {
         try {
             bookingService.deleteBookingById(bookingId);

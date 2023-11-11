@@ -42,7 +42,9 @@ public class BookingService {
 
         // Update the product's status to BOOKED
         Product product = booking.getProduct();
-        product.setStatus("BOOKED");
+        Optional<Status> statusOptional = statusRepository.findByName("booked");
+        Status status = statusOptional.get();
+        product.setStatus(status.getName());
         productRepository.save(product);
 
         // Save the booking
@@ -57,9 +59,11 @@ public class BookingService {
         booking.setStatus(BookingStatus.APPROVED);
         bookingRepository.save(booking);
 
-        // Update the product's status to RENTED (or any desired status)
+        // Update the product's status to RENTED
         Product product = booking.getProduct();
-        product.setStatus("RENTED");
+        Optional<Status> statusOptional = statusRepository.findByName("rented");
+        Status status = statusOptional.get();
+        product.setStatus(status.getName());
         productRepository.save(product);
     }
 
@@ -71,9 +75,13 @@ public class BookingService {
         booking.setStatus(BookingStatus.REJECTED);
         bookingRepository.save(booking);
 
-        // Update the product's status to PENDING (or any desired status)
+        // Update the product's status to PENDING
         Product product = booking.getProduct();
-        product.setStatus("PENDING");
+
+        Optional<Status> statusOptional = statusRepository.findByName("pending");
+            Status status = statusOptional.get();
+            product.setStatus(status.getName());
+
         productRepository.save(product);
     }
     public List<Booking> getBookingsForOwnedProducts(UserEntity owner) {
@@ -100,6 +108,10 @@ public class BookingService {
         return bookings;
     }
 
+    public List<Booking> getBookingsForRentee(UserEntity renter) {
+        return bookingRepository.findByBookerAndStatus(renter,BookingStatus.PENDING);
+
+    }
 
     public List<Booking> getRentingsForOwnedProducts(UserEntity owner) {
         List<Booking> rentals = new ArrayList<>();
@@ -157,6 +169,10 @@ public class BookingService {
         } else {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    public List<Booking> getRentingsForRentee(UserEntity booker) {
+        return bookingRepository.findByBookerAndStatus(booker,BookingStatus.APPROVED);
     }
 }
 

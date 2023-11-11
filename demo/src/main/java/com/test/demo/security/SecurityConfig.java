@@ -61,8 +61,8 @@ public class SecurityConfig {
                                         "/swagger-ui.html"
                                 ).permitAll()
                                 .requestMatchers("/api/users/**").permitAll()
+                                .requestMatchers("/api/booking/**").permitAll()
                                 .requestMatchers("/api/v1/**").permitAll()
-                                .requestMatchers("/**").permitAll()
                                 .anyRequest().authenticated()
                 );
         http.authenticationProvider(authenticationProvider());
