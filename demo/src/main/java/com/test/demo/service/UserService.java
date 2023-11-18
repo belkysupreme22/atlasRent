@@ -34,4 +34,8 @@ public class UserService {
     public long getTotalRenters() {
         return userRepository.countByRolesName("rentee");
     }
+
+    public Page<UserEntity> getUsersWithSubAdminsRolePaged(Pageable pageable) {
+        return userRepository.findByRolesName("sub_admin", pageable);
+    }
 }

@@ -83,6 +83,25 @@ public class UserController {
         return ResponseEntity.ok(userResponse);
     }
 
+    @GetMapping("/sub-admins")
+    public ResponseEntity<UserResponse> getUsersWithSubAdminRole(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<UserEntity> subAdmins = userService.getUsersWithSubAdminsRolePaged(pageable);
+
+        UserResponse userResponse = new UserResponse();
+        userResponse.setContent(subAdmins.getContent());
+        userResponse.setPageNo(subAdmins.getNumber());
+        userResponse.setPageSize(subAdmins.getSize());
+        userResponse.setTotalElements(subAdmins.getTotalElements());
+        userResponse.setTotalPages(subAdmins.getTotalPages());
+        userResponse.setLast(subAdmins.isLast());
+
+        return ResponseEntity.ok(userResponse);
+    }
+
     @GetMapping("/renters")
     public ResponseEntity<UserResponse> getUsersWithRenterRole(
             @RequestParam(defaultValue = "0") int page,
