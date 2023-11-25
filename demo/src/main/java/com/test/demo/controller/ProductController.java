@@ -16,6 +16,7 @@ import com.test.demo.repository.UserRepository;
 import com.test.demo.service.ProductService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -24,7 +25,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 
@@ -38,6 +48,9 @@ public class ProductController {
     private final UserRepository userRepository;
     private final ProductService productService;
     private final StatusRepository statusRepository;
+
+    @Value("${image.upload.directory}")
+    private String imageUploadDirectory;
 
     @GetMapping("/view-products")
     public ProductResponse gellAllProducts
@@ -122,14 +135,24 @@ public class ProductController {
 
 
     @SecurityRequirement(name = "bearerAuth")
-    @PostMapping("/list-products")
-    public ResponseEntity<String> createProduct(@RequestBody ProductDto productDto) {
+    @PostMapping(value = "/list-products", consumes = "multipart/form-data")
+    public ResponseEntity<String> createProduct( @RequestPart("productDto") ProductDto productDto,
+                                                 @RequestPart("imageFile") MultipartFile imageFile) throws IOException {
         Product product = new Product();
         product.setName(productDto.getName());
         product.setPrice(productDto.getPrice());
         product.setLocation(productDto.getLocation());
         product.setDate(productDto.getDate());
+        product.setDescription(productDto.getDescription());
         Category category;
+
+        if (imageFile != null && !imageFile.isEmpty()) {
+            String fileName = System.currentTimeMillis() + "_" + imageFile.getOriginalFilename();
+            Path filePath = Paths.get(imageUploadDirectory, fileName);
+            Files.copy(imageFile.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+            String imageUrl = "/api/v1/images/" + fileName;
+            product.setImageUrl(imageUrl);
+        }
         switch (productDto.getCategory().toUpperCase()) {
             case "VEHICLE":
                 category = categoryRepository.findByName("VEHICLE").orElse(null);
@@ -180,6 +203,7 @@ public class ProductController {
         } else {
             throw new UserNotFoundException("User not found");
         }
+
 
         productRepository.save(product);
 

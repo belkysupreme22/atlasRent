@@ -25,6 +25,9 @@ public class Product{
     @JsonIgnore
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate date;
+    private String imageUrl;
+    private String description;
+
     private String status;
 
     //product-category association
@@ -51,6 +54,14 @@ public class Product{
     @JsonIgnore
     @OneToMany(mappedBy = "product")
     private List<Booking> bookings;
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
 
 
     public void setOwner(UserEntity owner) {
