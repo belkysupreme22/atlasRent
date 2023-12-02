@@ -14,6 +14,8 @@ import com.test.demo.repository.ProductRepository;
 import com.test.demo.repository.StatusRepository;
 import com.test.demo.repository.UserRepository;
 import com.test.demo.service.ProductService;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -146,36 +148,15 @@ public class ProductController {
         product.setDescription(productDto.getDescription());
         Category category;
 
-        if (imageFile != null && !imageFile.isEmpty()) {
-            String fileName = System.currentTimeMillis() + "_" + imageFile.getOriginalFilename();
-            Path filePath = Paths.get(imageUploadDirectory, fileName);
-            Files.copy(imageFile.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-            String imageUrl = "/api/v1/images/" + fileName;
-            product.setImageUrl(imageUrl);
-        }
-        switch (productDto.getCategory().toUpperCase()) {
-            case "VEHICLE":
-                category = categoryRepository.findByName("VEHICLE").orElse(null);
-                break;
-            case "HOUSE":
-                category = categoryRepository.findByName("HOUSE").orElse(null);
-                break;
-            case "ELECTRONICS":
-                category = categoryRepository.findByName("ELECTRONICS").orElse(null);
-                break;
-            case "MACHINERY":
-                category = categoryRepository.findByName("MACHINERY").orElse(null);
-                break;
-            case "CLOTHES":
-                category = categoryRepository.findByName("CLOTHES").orElse(null);
-                break;
-            case "OTHERS":
-                category = categoryRepository.findByName("OTHERS").orElse(null);
-                break;
-            default:
-                category = null;
-                break;
-        }
+        category = switch (productDto.getCategory().toUpperCase()) {
+            case "VEHICLE" -> categoryRepository.findByName("VEHICLE").orElse(null);
+            case "HOUSE" -> categoryRepository.findByName("HOUSE").orElse(null);
+            case "ELECTRONICS" -> categoryRepository.findByName("ELECTRONICS").orElse(null);
+            case "MACHINERY" -> categoryRepository.findByName("MACHINERY").orElse(null);
+            case "CLOTHES" -> categoryRepository.findByName("CLOTHES").orElse(null);
+            case "OTHERS" -> categoryRepository.findByName("OTHERS").orElse(null);
+            default -> null;
+        };
 
         if (category == null) {
             return new ResponseEntity<>("Invalid category preference!", HttpStatus.BAD_REQUEST);
@@ -190,7 +171,13 @@ public class ProductController {
             // Handle the case where the status is not found
             return new ResponseEntity<>("Status not found in the database!", HttpStatus.BAD_REQUEST);
         }
-
+        if (imageFile != null && !imageFile.isEmpty()) {
+            String fileName = System.currentTimeMillis() + "_" + imageFile.getOriginalFilename();
+            Path filePath = Paths.get(imageUploadDirectory, fileName);
+            Files.copy(imageFile.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+            String imageUrl = "/api/v1/images/" + fileName;
+            product.setImageUrl(imageUrl);
+        }
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String currentUsername = userDetails.getUsername();
 
